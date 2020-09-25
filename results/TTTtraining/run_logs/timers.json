@@ -1,0 +1,75 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1601013354",
+        "python_version": "3.7.9 (tags/v3.7.9:13c94747c7, Aug 17 2020, 18:58:18) [MSC v.1900 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\Siew Jun Leong\\AppData\\Local\\Programs\\Python\\Python37\\Scripts\\mlagents-learn TicTacToe.yaml --run-id=TTTtraining",
+        "mlagents_version": "0.19.0",
+        "mlagents_envs_version": "0.19.0",
+        "communication_protocol_version": "1.0.0",
+        "tensorflow_version": "2.3.0",
+        "numpy_version": "1.19.1",
+        "end_time_seconds": "1601013425"
+    },
+    "total": 70.6947092,
+    "count": 1,
+    "self": 0.011704300000005219,
+    "children": {
+        "run_training.setup": {
+            "total": 0.010960700000000045,
+            "count": 1,
+            "self": 0.010960700000000045
+        },
+        "TrainerController.start_learning": {
+            "total": 70.6720442,
+            "count": 1,
+            "self": 0.0006551000000030172,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 10.2510816,
+                    "count": 1,
+                    "self": 10.2510816
+                },
+                "TrainerController.advance": {
+                    "total": 60.02474430000001,
+                    "count": 1,
+                    "self": 2.250000000003638e-05,
+                    "children": {
+                        "env_step": {
+                            "total": 60.02472180000001,
+                            "count": 1,
+                            "self": 60.00754650000001,
+                            "children": {
+                                "SubprocessEnvManager._take_step": {
+                                    "total": 0.017175299999999893,
+                                    "count": 1,
+                                    "self": 2.95999999995189e-05,
+                                    "children": {
+                                        "TFPolicy.evaluate": {
+                                            "total": 0.017145700000000375,
+                                            "count": 1,
+                                            "self": 0.017145700000000375
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "TrainerController._save_models": {
+                    "total": 0.395563199999998,
+                    "count": 1,
+                    "self": 0.01588940000000605,
+                    "children": {
+                        "RLTrainer._checkpoint": {
+                            "total": 0.37967379999999196,
+                            "count": 1,
+                            "self": 0.37967379999999196
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
