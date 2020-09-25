@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -8,13 +9,27 @@ using UnityEngine.UI;
 public class GameController : MonoBehaviour
 {
     public Text[] buttonList;
-    private string playerSide;
+    public string playerSide;
+    public ttt_ai agent1, agent2;
 
     public GameObject gameOverPanel;
     public Text gameOverText;
 
-    private int moveCount;
+    public int moveCount;
     public GameObject restartButton;
+
+    [Header("General Settings")]
+    public bool NiceToWatchMode;
+    [HideInInspector]
+    public bool PlayerChanged = true;
+
+
+    public enum WinState
+    {
+        Draw,
+        NoughtWin,
+        CrossWin
+    }
 
     void Awake() 
     {
@@ -25,7 +40,7 @@ public class GameController : MonoBehaviour
         restartButton.SetActive(false);
     }
 
-    void SetGameControllerReferenceOnButtons()
+   void SetGameControllerReferenceOnButtons()
     {
         for (int i = 0; i < buttonList.Length; i++) 
         {
@@ -36,6 +51,99 @@ public class GameController : MonoBehaviour
     public string GetPlayerSide()
     {
         return playerSide;
+    }
+
+    private void FixedUpdate()
+    {
+        if (PlayerChanged)
+        {
+            PlayerChanged = false;
+
+            if (NiceToWatchMode) StartCoroutine(DelayedRequestDecision());
+            else GetAgentOfType(playerSide).RequestDecision();
+        }
+    }
+
+    private IEnumerator DelayedRequestDecision()
+    {
+        yield return new WaitForSecondsRealtime(0.5f);
+        GetAgentOfType(playerSide).RequestDecision();
+        yield return true;
+    }
+
+    public void SelectField(int action, string type)
+    {
+        for (int i = 0; i < buttonList.Length; i++)
+        {
+            if (action == i)
+            {
+                buttonList[i].text = type;
+            }
+
+        }
+    }
+
+    public int ObserveState(string playerType, int i)
+    {
+            string currentState = buttonList[i].text;
+            //Flip state depending on player to align observations
+            if (playerType == "O")
+            {
+                if (currentState == "X") return 2;
+                if (currentState == "O") return 1;
+            }
+
+            if (playerType == "X")
+            {
+                if (currentState == "X") return 1;
+                if (currentState == "O") return 2;
+            }
+            return 0;
+    }
+
+    public IEnumerable<int> GetOccupiedFields()
+    {
+        List<int> impossibleFields = new List<int>(9);
+
+        for (int i = 0; i < 9; i++)
+        {
+            if (buttonList[i].text != "")
+                impossibleFields.Add(i);
+        }
+        return impossibleFields.ToArray();
+    }
+
+    private ttt_ai GetAgentOfType(string type)
+    {
+        if (agent1.type == type) return agent1;
+        else return agent2;
+    }
+
+    public void AssignRewardsOnWin(WinState winState)
+    {
+        if (winState == WinState.CrossWin)
+        {
+            GetAgentOfType("X").SetReward(1f);
+            GetAgentOfType("O").SetReward(-1f);
+        }
+        else if (winState == WinState.NoughtWin)
+        {
+            GetAgentOfType("O").SetReward(1f);
+            GetAgentOfType("X").SetReward(-1f);
+        }
+        else if (winState == WinState.Draw)
+        {
+            if (moveCount >= 9)
+            {
+                GetAgentOfType("O").SetReward(0.75f);
+                GetAgentOfType("X").SetReward(-0.25f);
+            }
+            else
+            {
+                GetAgentOfType("O").SetReward(-0.25f);
+                GetAgentOfType("X").SetReward(0.75f);
+            }
+        }
     }
 
     public void EndTime()
@@ -80,9 +188,8 @@ public class GameController : MonoBehaviour
                 gameOverText.text =" It's a draw!";
                 gameOverPanel.SetActive(true);
                 restartButton.SetActive(true);
-
             }
-            ChangeSides();
+            ChangeSides();            
         }
     }
 
@@ -92,7 +199,12 @@ public class GameController : MonoBehaviour
         {
             buttonList[i].GetComponentInParent<Button>().interactable = false;        
         }
-
+        agent1.EndEpisode();
+        agent2.EndEpisode();
+        agent1.gameCount++;
+        agent2.gameCount++;
+        agent1.SwitchSide();
+        agent2.SwitchSide();
         gameOverText.text = playerSide + " wins!";
         gameOverPanel.SetActive(true);
         restartButton.SetActive(true);
@@ -101,14 +213,22 @@ public class GameController : MonoBehaviour
 
     void ChangeSides() 
     {
-        if (playerSide == "X") { playerSide = "O"; }
-        else { playerSide = "X"; }
+        if (playerSide == "X")
+        {
+            playerSide = "O"; 
+        }
+        else 
+        {
+            playerSide = "X"; 
+        }
+        PlayerChanged = true;
     }
 
     public void RestartGame()
     {
         playerSide = "X";
         moveCount = 0;
+
         gameOverPanel.SetActive(false);
         restartButton.SetActive(false);
         for (int i = 0; i < buttonList.Length; i++)
